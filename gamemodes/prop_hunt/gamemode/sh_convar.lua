@@ -400,11 +400,11 @@ if CLIENT then
     -- Mouse right clicking is now client-sided.
     CLCVAR["ph_prop_right_mouse_taunt"]		=	{ CTYPE_BOOL,	"0",     true, true,  "Should Prop also able to Taunt by pressing Right Click?" }
 
-	CLCVAR["ph_default_taunt_key"]			=	{ CTYPE_NUMBER,  KEY_F3, true, true,  "Default random taunt key to be used. Default is F3 ("..tostring(KEY_F3)..")" }
+	CLCVAR["ph_default_taunt_key_ovcrx"]			=	{ CTYPE_NUMBER,  KEY_F4, true, true,  "Default random taunt key to be used. Default is F3 ("..tostring(KEY_F3)..")" }
 	CLCVAR["ph_default_customtaunt_key"]	=	{ CTYPE_NUMBER,  KEY_C,  true, true,  "Default custom taunt key to be used. Default is C ("..tostring(KEY_C)..")" }
 	CLCVAR["ph_default_rotation_lock_key"]	=	{ CTYPE_NUMBER,  KEY_R,  true, true,  "Default Rotation lock key to be used. Default is R ("..tostring(KEY_R)..")" }
 
-	CLCVAR["ph_prop_menu_key"]				=	{ CTYPE_NUMBER,  KEY_F8, true, true,  "Default key to open Prop Menu. Default is F8 ("..tostring(KEY_F8)..")" }
+	CLCVAR["ph_prop_menu_key_ovcrx"]				=	{ CTYPE_NUMBER,  KEY_T, true, true,  "Default key to open Prop Menu. Default is F8 ("..tostring(KEY_F8)..")" }
 	CLCVAR["ph_prop_midair_freeze_key"]		=	{ CTYPE_NUMBER,  KEY_M,  true, true,  "Default key to freeze your prop while in mid-air. Default is M ("..tostring(KEY_M)..")" }
 	
 	-- New ClientConvar
@@ -426,7 +426,7 @@ if CLIENT then
     CLCVAR["ph_tpcam_right"]                =   { CTYPE_NUMBER, "16",      true, true, "Right/Left position for thirdperson camera.", { min=-128, max = 128 } }
     CLCVAR["ph_tpcam_up"]                   =   { CTYPE_NUMBER, "5",       true, true, "Up position for thirdperson camera.", { min=-32, max = 32 } }
 	
-	CLCVAR["ph_cl_unstuck_key"]             =   { CTYPE_NUMBER, KEY_F6,    true, true, "Key to try to unstuck." }
+	CLCVAR["ph_cl_unstuck_key_ovcrx"]             =   { CTYPE_NUMBER, KEY_A,    true, true, "Key to try to unstuck." }
 
 	local cTranslate = {}
 

@@ -522,7 +522,7 @@ function GM:EndOfGame( bGamemodeVote )
 		
 		timer.Simple( GAMEMODE.VotingDelay, function()
 		
-			PHX.StartMapVote()
+			MapVote.PHXStart(votetime, nil, nil, nil)
 
 		end )
 		

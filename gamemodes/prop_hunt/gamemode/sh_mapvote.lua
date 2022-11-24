@@ -19,7 +19,7 @@ MapVoteConfigDefault = {
 local convarlist = {
 	{"mv_maplimit", 		"24",		CVAR_SERVER_ONLY_NO_NOTIFY, "numbers of map that shown on mapvote.", 5 },
 	{"mv_timelimit",		"28",		CVAR_SERVER_ONLY, "time in second for default mapvotes time.", 10 },
-	{"mv_change_when_no_player", "1", 	CVAR_SERVER_ONLY, "change the map after no players in the server?", 0, 1 },
+	{"mv_change_when_no_player", "0", 	CVAR_SERVER_ONLY, "change the map after no players in the server?", 0, 1 },
 	{"mv_allowcurmap",		"0",		CVAR_SERVER_ONLY_NO_NOTIFY, "allow current map to be voted (1/0)", 0, 1 },
 	{"mv_use_ulx_votemaps", "0",		CVAR_SERVER_ONLY_NO_NOTIFY, "Use map listing from ULX Mapvote? 1 = use from ULX mapvote list (which you can whitelist them), 0 = use default maps/*.bsp directory listing.", 0, 1 },
 	{"mv_cooldown",			"1",		CVAR_SERVER_ONLY, "enable cooldown for voting a map", 0, 1 },

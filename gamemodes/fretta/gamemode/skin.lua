@@ -185,13 +185,13 @@ end
 
 function SKIN:SchemeSelectButton( panel )
 
-	panel:SetFontInternal( "FRETTA_SMALL" )
+	-- panel:SetFontInternal( "FRETTA_SMALL" )
 	
-	if ( panel:GetDisabled() ) then
-		panel:SetTextColor( self.colButtonTextDisabled )
-	else
+	-- if ( panel:GetDisabled() ) then
+	-- 	panel:SetTextColor( self.colButtonTextDisabled )
+	-- else
 		panel:SetTextColor( self.colButtonText )
-	end
+	-- end
 	
 	DLabel.ApplySchemeSettings( panel )
 

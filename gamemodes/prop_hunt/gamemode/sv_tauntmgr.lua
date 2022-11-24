@@ -24,11 +24,11 @@ local function AutoTauntThink()
 				local pitchRandEnabled 	= ply:GetInfoNum( "ph_cl_pitch_apply_random", 0 )
 				local pitchlevel 		= ply:GetInfoNum( "ph_cl_pitch_level", 100 )
 				local isRandomized 		= ply:GetInfoNum( "ph_cl_pitch_randomized_random", 0 )
-				local rand_taunt 		= table.Random(PHX.CachedTaunts[TEAM_PROPS])
+				local rand_taunt 		= table.Random(PHX.AUTOTAUNTS)
 				
-				if !isstring(rand_taunt) then rand_taunt = tostring(rand_taunt); end
+				-- if !isstring(rand_taunt) then rand_taunt = tostring(rand_taunt); end
 				
-				PHX:PlayTaunt( ply, rand_taunt, pitchRandEnabled, pitchlevel, isRandomized, "LastTauntTime" )
+				PHX:PlayTaunt( ply, rand_taunt, pitchRandEnabled, pitchlevel, isRandomized, "Autotaunt" )
 
 			end
 		end
@@ -47,7 +47,16 @@ local function IsDelayed(ply)
 	return { delay > CurTime(), delay - CurTime() }
 end
 local function CheckValidity( tauntName, sndFile, plyTeam )
+	-- print(file.Exists("sound/"..sndFile, "GAME"))
+	-- print((PHX.CachedTaunts[plyTeam][tauntName] ~= nil))
+	-- print(table.HasValue( PHX.CachedTaunts[plyTeam], sndFile ))
 	return file.Exists("sound/"..sndFile, "GAME") and (PHX.CachedTaunts[plyTeam][tauntName] ~= nil) and table.HasValue( PHX.CachedTaunts[plyTeam], sndFile )
+end
+local function CheckValidity2( tauntName, sndFile, plyTeam )
+	-- print(file.Exists("sound/"..sndFile[1], "GAME"))
+	-- print((PHX.CachedTaunts[plyTeam][tauntName] ~= nil))
+	-- print(table.HasValue( PHX.CachedTaunts[plyTeam], sndFile ))
+	return file.Exists("sound/"..sndFile[1], "GAME") and (PHX.CachedTaunts[plyTeam][tauntName] ~= nil) and table.HasValue( PHX.CachedTaunts[plyTeam], sndFile )
 end
 
 local function SetLastTauntDelay( ply )
@@ -57,7 +66,15 @@ end
 
 net.Receive("CL2SV_PlayThisTaunt", function(len, ply)
 	local name		= net.ReadString()
+	-- print("nom du taunt ajouer venant du c menu :"..name)
+	-- print(PHX.CachedTaunts[ply:Team()][name])
+	-- PrintTable(PHX.CachedTaunts[ply:Team()])
+	-- if PHX.CachedTaunts[ply:Team()] != nil then
+	-- 	PrintTable(PHX.CachedTaunts[ply:Team()][name])
+	-- end
 	local snd 		= net.ReadString()
+	snd = PHX.CachedTaunts[ply:Team()][name]
+	-- PrintTable(snd)
 	local bool 		= net.ReadBool()	-- enable fake taunt
 	
 	local isPitchEnabled = PHX:GetCVar( "ph_taunt_pitch_enable" )
@@ -88,9 +105,9 @@ net.Receive("CL2SV_PlayThisTaunt", function(len, ply)
 					if Count > 0 or PHX:GetCVar( "ph_randtaunt_map_prop_max" ) == -1 then
 						
 						-- Don't use PHX:PlayTaunt here. This is NOT player entity!!
-						if CheckValidity( name, snd, playerTeam ) then							
-							if isPitchEnabled and tobool( plApplyOnFake ) then
-                                if tobool( randFakePitch ) then
+						if CheckValidity2( name, snd, playerTeam ) then							
+							if isPitchEnabled and tobool(plApplyOnFake) then
+                                if tobool(randFakePitch) then
                                     pitch = math.random(PHX:GetCVar( "ph_taunt_pitch_range_min" ), PHX:GetCVar( "ph_taunt_pitch_range_max" ))
                                 else
                                     pitch = math.Clamp(desiredPitch, PHX:GetCVar( "ph_taunt_pitch_range_min" ), PHX:GetCVar( "ph_taunt_pitch_range_max" ))
@@ -102,7 +119,7 @@ net.Receive("CL2SV_PlayThisTaunt", function(len, ply)
 							local randomprop = table.Random( props ) -- because of table.Add, it become non-sequential.
 							
 							if IsValid(randomprop) then
-								randomprop:EmitSound(snd, 100, pitch)
+								randomprop:EmitSound(snd[1], 100, 100)
 								ply:SubTauntRandMapPropCount()
 								SetLastTauntDelay( ply )
 							end
@@ -115,10 +132,10 @@ net.Receive("CL2SV_PlayThisTaunt", function(len, ply)
 					end
 				end
 			else	-- if it's Player Taunt
-				if CheckValidity( name, snd, playerTeam ) then
+				if CheckValidity2( name, snd, playerTeam ) then
 				
 					PHX:PlayTaunt( ply, snd, plPitchOn, desiredPitch, plPitchRandomized, "CLastTauntTime" )
-					ply:SetLastTauntTime( "LastTauntTime", CurTime() )
+					-- ply:SetLastTauntTime( "LastTauntTime", CurTime() )
 					
 				else
 					ply:PHXChatInfo( "WARNING", "TM_DELAYTAUNT_NOT_EXIST" )

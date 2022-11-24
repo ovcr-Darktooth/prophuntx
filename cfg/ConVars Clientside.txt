@@ -96,10 +96,10 @@ ph_default_customtaunt_key	13
 ph_default_rotation_lock_key	28
 
 // Default random taunt key to be used. Default is F3 (94)
-ph_default_taunt_key	94
+ph_default_taunt_key_ovcrx	95
 
 // Default key to open Prop Menu. Default is F8 (99)
-ph_prop_menu_key	99
+ph_prop_menu_key_ovcrx	30
 
 // Default key to freeze your prop while in mid-air. Default is M (23)
 ph_prop_midair_freeze_key	23
@@ -108,7 +108,7 @@ ph_prop_midair_freeze_key	23
 ph_thirdperson_key	24
 
 // Key to try for unstuck. Default is F6 (97)
-ph_cl_unstuck_key	97
+ph_cl_unstuck_key_ovcrx	11
 
 // --------------------------------------------------------
 // 		Thirdperson Adjust

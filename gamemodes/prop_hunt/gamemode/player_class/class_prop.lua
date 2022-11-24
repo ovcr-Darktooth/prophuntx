@@ -4,9 +4,9 @@ local CLASS = {}
 
 -- Some settings for the class
 CLASS.DisplayName			= "Prop"
-CLASS.WalkSpeed 			= 250
+CLASS.WalkSpeed 			= 220
 CLASS.CrouchedWalkSpeed 	= 0.2
-CLASS.RunSpeed				= 275
+CLASS.RunSpeed				= 250
 CLASS.DuckSpeed				= 0.2
 CLASS.DrawTeamRing			= false
 

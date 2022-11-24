@@ -246,7 +246,7 @@ local function MainFrame()
 	window.ckPF3:Dock(TOP)
 	window.ckPF3:SetSize(0,20)
 	window.ckPF3:DockMargin(8,1,0,0)
-	window.ckPF3:SetText( PHX:FTranslate("PHX_RTAUNT_USE_PITCH", input.GetKeyName( PHX:GetCLCVar( "ph_default_taunt_key" ) )) )
+	window.ckPF3:SetText( PHX:FTranslate("PHX_RTAUNT_USE_PITCH", input.GetKeyName( PHX:GetCLCVar( "ph_default_taunt_key_ovcrx" ) )) )
 	window.ckPF3:SetConVar( "ph_cl_pitch_apply_random" )
     function window.ckPF3:OnChange( bool )
         window.ckPRandF3:SetEnabled( bool )
@@ -256,7 +256,7 @@ local function MainFrame()
 	window.ckPRandF3:Dock(TOP)
 	window.ckPRandF3:SetSize(0,20)
 	window.ckPRandF3:DockMargin(8,1,0,0)
-	window.ckPRandF3:SetText( PHX:FTranslate("PHX_RTAUNT_RANDOMIZE", input.GetKeyName( PHX:GetCLCVar( "ph_default_taunt_key" ) )) )
+	window.ckPRandF3:SetText( PHX:FTranslate("PHX_RTAUNT_RANDOMIZE", input.GetKeyName( PHX:GetCLCVar( "ph_default_taunt_key_ovcrx" ) )) )
 	window.ckPRandF3:SetConVar( "ph_cl_pitch_randomized_random" )
     window.ckPRandF3:SetEnabled( window.ckPF3:GetChecked() )
 	
@@ -594,6 +594,10 @@ local function MainFrame()
 		
 			net.Start("CL2SV_PlayThisTaunt")
 				net.WriteString(tostring(name))
+				-- print(tostring(snd))
+				-- if type(snd) == "table" then
+				-- 	PrintTable(snd)
+				-- end
 				net.WriteString(tostring(snd))
 				net.WriteBool(bFakeTaunt)
 			net.SendToServer();
@@ -623,6 +627,8 @@ local function MainFrame()
 	CreateStyledButton(LEFT,86,PHX:FTranslate("TM_TOOLTIP_PREVIEW"),{5,5,5,5}, "vgui/phehud/btn_play.vmt",FILL, function()
 		if hastaunt and hasLines then
 			local Name,getline = TranslateTaunt(window.CurrentCategory, window.list:GetLine(window.list:GetSelectedLine()):GetValue(1))
+			-- print(Name)
+			-- print(getline)
             local pt = 100
             if window.ckpitch:GetChecked() then
                 if window.ckpitrand:GetChecked() then
@@ -631,8 +637,8 @@ local function MainFrame()
                     pt = window.slider:GetValue()
                 end
             end
-            LocalPlayer():EmitSound( getline, 0, pt )
-			PHX:AddChat(PHX:Translate("TM_NOTICE_PLAYPREVIEW", "["..Name.."] : "..getline), Color(20,220,0))
+            LocalPlayer():EmitSound( getline[1], 0, pt )
+			PHX:AddChat(PHX:Translate("TM_NOTICE_PLAYPREVIEW", "["..Name.."] : "..getline[1]), Color(20,220,0))
 		end
 	end)
 	CreateStyledButton(LEFT,86,PHX:FTranslate("TM_TOOLTIP_PLAYCLOSE"),{5,5,5,5},"vgui/phehud/btn_playx.vmt",FILL, function()
@@ -690,8 +696,8 @@ local function MainFrame()
                             pt = window.slider:GetValue()
                         end
                     end
-                    LocalPlayer():EmitSound( getline, 0, pt )
-                    PHX:AddChat(PHX:Translate("TM_NOTICE_PLAYPREVIEW", "["..Name.."] : "..getline), Color(20,220,0)); 
+                    LocalPlayer():EmitSound( getline[1], 0, pt )
+                    PHX:AddChat(PHX:Translate("TM_NOTICE_PLAYPREVIEW", "["..Name.."] : "..getline[1]), Color(20,220,0)); 
                 end 
             end):SetIcon("icon16/control_play.png")
 			

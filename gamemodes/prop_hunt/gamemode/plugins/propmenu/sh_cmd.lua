@@ -25,7 +25,7 @@ local function PHX_PropMenu( calling_ply )
 		if PHX:QCVar( "pcr_use_ulx_menu" ) then
 			calling_ply:SendLua("PCR:OpenPropMenu()")
 		else
-		    local btn = calling_ply:GetInfoNum( "ph_prop_menu_key", 0 )
+		    local btn = calling_ply:GetInfoNum( "ph_prop_menu_key_ovcrx", 0 )
 			calling_ply:PHXChatInfo("NOTICE", "PCR_CMD_ULX_DISABLED", btn)
 		end
 	end

@@ -25,6 +25,7 @@ include("sh_config.lua")
 include("sv_admin.lua")
 include("sv_tauntmgr.lua")
 include("sv_bbox.lua")
+include("sh_movement_logic.lua") -- Strafes
 
 -- initial value.
 SetGlobalInt("unBlind_Time", math.Clamp(PHX:GetCVar( "ph_hunter_blindlock_time" ) - (CurTime() - GetGlobalFloat("RoundStartTime", 0)), 0, PHX:GetCVar( "ph_hunter_blindlock_time" )) )
@@ -109,24 +110,6 @@ local function sendGroupInfo( ply )
     net.Send( ply )
 end
 
--- Player Join/Leave message
-gameevent.Listen( "player_connect" )
-hook.Add( "player_connect", "AnnouncePLJoin", function( data )
-	if PHX:GetCVar( "ph_notify_player_join_leave" ) then
-		for k, v in pairs( player.GetAll() ) do
-			v:PHXChatInfo( "NOTICE", "EV_PLAYER_CONNECT", data.name )
-		end
-	end
-end )
-
-gameevent.Listen( "player_disconnect" )
-hook.Add( "player_disconnect", "AnnouncePLLeave", function( data )
-	if PHX:GetCVar( "ph_notify_player_join_leave" ) then
-		for k,v in pairs( player.GetAll() ) do
-			v:PHXChatInfo( "NOTICE", "EV_PLAYER_DISCONNECT", data.name, data.reason )
-		end
-	end
-end )
 
 -- Called alot
 function GM:CheckPlayerDeathRoundEnd()
@@ -155,7 +138,8 @@ function GM:CheckPlayerDeathRoundEnd()
 		if (TeamID == TEAM_PROPS or TeamID == TEAM_HUNTERS) then
 		
 			-- debug
-			PHX.VerboseMsg("Round Result: "..team.GetName(TeamID).." ("..TeamID..") Wins!")
+			-- PHX.VerboseMsg("Round Result: "..team.GetName(TeamID).." ("..TeamID..") Wins!")
+			PHX.VerboseMsg(os.date("%d/%m/%Y", os.time() ).." ".. os.date("%H:%M:%S", os.time() ) .." : Equipe " .. team.GetName(TeamID) .. " (" .. TeamID .. ") gagne !\n")
 			
 			-- End Round
 			GAMEMODE:RoundEndWithResult(TeamID, "HUD_TEAMWIN")
@@ -280,19 +264,39 @@ function EntityTakeDamage(ent, dmginfo)
         
         local penalty = PHX:GetCVar( "ph_hunter_fire_penalty" )
         local allow   = PHX:GetCVar( "ph_allow_armor" )
-		if allow and att:Armor() >= 5 && penalty >= 5 then
-			att:SetHealth(att:Health() - (math.Round( penalty/2 )))
-			att:SetArmor(att:Armor() - 15)
-			if att:Armor() < 0 then att:SetArmor(0) end
-		else
-			att:SetHealth(att:Health() - penalty)
-		end
-		if att:Health() <= 0 then
-			-- this is debug console, no need to be translated.
-			MsgAll(att:Name() .. " felt guilty for hurting so many innocent props and committed suicide\n")
-			att:Kill()
-			
-			hook.Call("PH_HunterDeathPenalty", nil, att)
+		--Si c'est un patch on passe
+		if (ent:GetClass()!="mappatcher_brush") then
+			--Si il a de l'armure
+			if allow and att:Armor() >= 5 && penalty >= 5 then
+				att:SetHealth(att:Health() - (math.Round( penalty/2 )))
+				att:SetArmor(att:Armor() - 15)
+				if att:Armor() < 0 then att:SetArmor(0) end
+			else
+				att:SetHealth(att:Health() - penalty)
+			end
+			--Si il a pas de vie
+			if att:Health() <= 0 then
+				MsgAll(os.date("%d/%m/%Y", os.time() ).." "..os.date("%H:%M:%S", os.time() ) .." : "..att:Name() .. " vas-y molo fréro sur les props\n")
+				att:Kill()
+				att:StopParticles()
+
+				--Gain de points pour les props quand un hunteur crève
+				for _,pl in pairs(team.GetPlayers(TEAM_PROPS)) do
+					if pl:Alive() then
+						if pl:GetUserGroup() == "vip_Fondateur" || pl:GetUserGroup() == "vip_Moderateur" || pl:GetUserGroup() == "vip_Administrateur" || pl:GetUserGroup() == "vip_utilisateur" then
+							pl:PS_GivePoints(100)
+							pl:PS_Notify("Vous avez gagné 100 ", PS.Config.PointsName, " pour avoir survécu à un hunter ! (x2 VIP)")
+							XPSYS.AddXP(pl, 500)
+						else
+							pl:PS_GivePoints(50)
+							pl:PS_Notify("Vous avez gagné 50 ", PS.Config.PointsName, " pour avoir survécu à un hunter !")
+							XPSYS.AddXP(pl, 500)
+						end
+					end
+				end
+				
+				hook.Call("PH_HunterDeathPenalty", nil, att)
+			end
 		end
 	end
 end
@@ -761,17 +765,6 @@ hook.Add("PlayerInitialSpawn", "PHX.SetupInitData", function(ply)
 		
 	end
 	
-	-- Info Player Spawns
-	timer.Simple(3.5, function()
-		if PHX:GetCVar( "ph_notify_player_join_leave" ) then
-			for k,v in pairs( player.GetAll() ) do
-				if (IsValid(v) and IsValid(ply)) then
-					v:PHXChatInfo( "NOTICE", "EV_PLAYER_JOINED", ply:Nick() )
-				end
-			end
-		end
-	end)
-	
 	-- Inform Player to recently joined with X2Z's Tutorial
 	
 	timer.Simple(5, function()
@@ -821,8 +814,11 @@ hook.Add("PlayerSpawn", "PH_PlayerSpawn", function(pl)
 	pl:ResetTauntRandMapCount()
 	
 	pl:SetLastTauntTime( "LastTauntTime", CurTime() )
+	pl.last_taunt_time = 0
 	pl:SetLastTauntTime( "CLastTauntTime", CurTime() )
     pl.propdecoy = nil -- don't link to your decoy prop
+
+	pl:StopParticles()
 	
 	pl:ResetHull() -- Always call this.
 	net.Start("ResetHull")
@@ -847,10 +843,31 @@ end)
 
 -- Called when round ends
 hook.Add("PH_RoundEnd", "PHX.RoundIsEnd", function()
+
+	local nbPropsAlive = 0
+	for _, pl in pairs(team.GetPlayers(TEAM_PROPS)) do
+		if (pl:Alive()) then
+			if pl:GetUserGroup() == "vip_Fondateur" || pl:GetUserGroup() == "vip_Moderateur" || pl:GetUserGroup() == "vip_Administrateur" || pl:GetUserGroup() == "vip_utilisateur" then
+				pl:PS_GivePoints(90)
+				pl:PS_Notify("Tu as gagné 90 ", PS.Config.PointsName, " pour avoir survécu à la manche ! (x2 VIP)")
+			else
+				pl:PS_GivePoints(45)
+				pl:PS_Notify("Tu as gagné 45 ", PS.Config.PointsName, " pour avoir survécu à la manche !")
+			end
+			XPSYS.AddXP(pl,1000)
+			nbPropsAlive = nbPropsAlive + 1
+		end
+	end
+
+
     -- Unblind the hunters
+	local JoueursEnd = player.GetAll()
 	for _, pl in pairs(team.GetPlayers(TEAM_HUNTERS)) do
 		pl:Blind(false)
 		pl:UnLock()
+		if nbPropsAlive==0 && #JoueursEnd!=1 then
+			XPSYS.AddXP(pl,1000)
+		end
 	end
 	
 	-- Give rewards for living props for a decoy
@@ -863,6 +880,12 @@ hook.Add("PH_RoundEnd", "PHX.RoundIsEnd", function()
             end
         end
     end
+
+	for _,pl in pairs(JoueursEnd) do
+		if #JoueursEnd!=1 then
+			XPSYS.AddXP(pl,300)
+		end
+	end
 	
 	-- Stop autotaunting
 	net.Start("AutoTauntRoundEnd")
@@ -884,6 +907,15 @@ function GM:RoundTimerEnd()
 	
 	hook.Call("PH_OnTimerEnd", nil)
 end
+
+hook.Add( "PlayerDeath", "StopParticules", function( victim, inflictor, attacker )
+	local lesPly = player.GetAll()
+	for _,jou in pairs(lesPly) do
+		net.Start("StopParticules")
+		net.WriteEntity(victim)
+		net.Send(jou)
+	end
+end)
 
 -- Force End current Round.
 local function ForceEndRound( ply )
@@ -1063,6 +1095,7 @@ end
 function GM:RoundStart()
 
 	local roundNum = GetGlobalInt( "RoundNumber" );
+	print("Round numéro : "..roundNum)
 	local roundDuration = GAMEMODE:GetRoundTime( roundNum )
 	
 	GAMEMODE:OnRoundStart( roundNum )
@@ -1103,6 +1136,27 @@ function GM:RoundStart()
 	SetGlobalBool( "RoundWaitForPlayers", PHX:GetCVar( "ph_waitforplayers" ) )
 	
 	hook.Call("PH_RoundStart", nil)
+
+	--On coupe les particules pour gameurdubled
+	-- local lesPly = player.GetAll()
+	-- local gameurPresent = false
+	-- local gameurEntity
+	-- for _,ply in pairs(lesPly) do 
+	-- 	if ply:SteamID()=="STEAM_0:1:234546531" then
+	-- 		gameurPresent = true
+	-- 		gameurEntity = ply
+	-- 	end
+	-- end
+	-- if gameurPresent then
+	-- 	timer.Simple(4, function() 
+	-- 		net.Start("StopParticulesG")
+	-- 		net.WriteUInt(#lesPly, 4)
+	-- 		for _,ply in pairs(lesPly) do
+	-- 			net.WriteEntity(ply)
+	-- 		end
+	-- 		net.Send(gameurEntity)
+	-- 	end)
+	-- end
 	
 end
 -- End of Round Control Override
@@ -1148,33 +1202,42 @@ function PHX:PlayTaunt( pl, sndTaunt, bIsPitchEnabled, iPitchLevel, bIsRandomize
 	end
 
 	-- Re-strict team check.
-	
 	if (pl:Team() == TEAM_PROPS or pl:Team() == TEAM_HUNTERS) then
 		-- sndTaunt can be either boolean or string.
 		local taunt
+		local nom_taunt
 		
-		if isbool(sndTaunt) and (sndTaunt) then
+		if isbool(sndTaunt) && sndTaunt then
 			repeat
-				taunt = PHX:GetRandomTaunt( pl:Team() )
+				taunt, nom_taunt = PHX:GetRandomTaunt( pl:Team() )
 			until taunt != pl.last_taunt
 			--pl.last_taunt_time  = CurTime()
 			pl.last_taunt = taunt
 			
 		elseif isstring(sndTaunt) then
 			taunt = sndTaunt
+			
+		elseif type(sndTaunt)=="table" then --surement provient de autotaunt
+			taunt = sndTaunt
+			nom_taunt = table.KeyFromValue(PHX.AUTOTAUNTS, taunt)
 		end
 		
-		local pitch = 100
-		if PHX:GetCVar( "ph_taunt_pitch_enable" ) and tobool( bIsPitchEnabled ) then		
-			if tobool( bIsRandomized ) then
-				pitch = math.random( PHX:GetCVar("ph_taunt_pitch_range_min"), PHX:GetCVar("ph_taunt_pitch_range_max") )
+		pl:EmitSound( taunt[1], 100, 100 )
+		if pl:Team() == TEAM_PROPS && LastTauntTimeID != "Autotaunt" then
+			if pl:GetUserGroup() == "vip_Fondateur" || pl:GetUserGroup() == "vip_Moderateur" || pl:GetUserGroup() == "vip_Administrateur" || pl:GetUserGroup() == "vip_utilisateur" then
+				local doublePT = taunt[2] * 2
+				pl:PS_GivePoints(doublePT)
+				pl:PS_Notify("[TAUNT] "..nom_taunt.." | Vous avez gagné ",doublePT," ", PS.Config.PointsName, " pour avoir taunté ! (x2 VIP)")
 			else
-				pitch = math.Clamp( iPitchLevel, PHX:GetCVar("ph_taunt_pitch_range_min"), PHX:GetCVar("ph_taunt_pitch_range_max") )
+				pl:PS_GivePoints(taunt[2])
+				pl:PS_Notify("[TAUNT] "..nom_taunt.." | Vous avez gagné ",taunt[2]," ", PS.Config.PointsName, " pour avoir taunté !")
+				-- print(rand_taunt)
 			end
+			XPSYS.AddXP(pl, (taunt[2]*20))
 		end
-		pl:EmitSound( taunt, 100, pitch )
-		pl:SetLastTauntTime( LastTauntTimeID, CurTime() )
-		
+		-- pl:SetLastTauntTime( LastTauntTimeID, CurTime() + taunt[2] )
+		pl:SetLastTauntTime( "LastTauntTime", CurTime() + taunt[2] )
+		pl:SetLastTauntTime( "CLastTauntTime", CurTime() + taunt[2] )
 	end
 
 end
@@ -1182,7 +1245,7 @@ end
 hook.Add("PlayerButtonDown", "PlayerButton_ControlTaunts", function(pl, key)
 	if !GAMEMODE:InRound() then return end
 
-	local info 	 		= pl:GetInfoNum("ph_default_taunt_key", 0)
+	local info 	 		= pl:GetInfoNum("ph_default_taunt_key_ovcrx", 0)
 	local ctInfo 		= pl:GetInfoNum("ph_default_customtaunt_key", 0)
 	local lockInfo 		= pl:GetInfoNum("ph_default_rotation_lock_key", 0)
 	local freezePropKey = pl:GetInfoNum("ph_prop_midair_freeze_key", 0)
@@ -1193,7 +1256,7 @@ hook.Add("PlayerButtonDown", "PlayerButton_ControlTaunts", function(pl, key)
     local isRightClickMode = pl:GetInfoNum("ph_prop_right_mouse_taunt", 0)  -- Right Click for taunt. Changed to clientside convar instead
 	
 	local decoyKey		= pl:GetInfoNum("ph_cl_decoy_spawn_key", 0)			-- Used for spawning decoy
-	local unstuckKey	= pl:GetInfoNum("ph_cl_unstuck_key", 0)				-- The Unstuck Key
+	local unstuckKey	= pl:GetInfoNum("ph_cl_unstuck_key_ovcrx", 0)				-- The Unstuck Key
 	
 	if IsValid(pl) and pl:Alive() and (pl:Team() == TEAM_PROPS or pl:Team() == TEAM_HUNTERS) then
 		

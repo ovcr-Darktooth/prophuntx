@@ -50,7 +50,12 @@ local nets = {
 	"PHX.scan_SendTauntLists",
 
     -- X2Z Very-first Tutorial Window
-	"phx_showVeryFirstTutorial"
+	"phx_showVeryFirstTutorial",
+
+	
+	--Darktooth Addition (Shop particles)
+	"StopParticules",
+	"StopParticulesG" --Pour gameurdubled principalement
 }
 
 for _,init in pairs(nets) do

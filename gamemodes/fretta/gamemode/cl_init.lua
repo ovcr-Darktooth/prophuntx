@@ -30,6 +30,7 @@ language.Add( "prop_physics_respawnable", "Prop" )
 language.Add( "prop_physics_multiplayer", "Prop" )
 language.Add( "entityflame", "Fire" )
 
+surface.CreateLegacyFont( "Roboto", 60, 700, true, false, "FRETTA_ENORMOUS" )
 surface.CreateLegacyFont( "Roboto", 40, 700, true, false, "FRETTA_HUGE" )
 surface.CreateLegacyFont( "Roboto", 40, 700, true, false, "FRETTA_HUGE_SHADOW", true )
 surface.CreateLegacyFont( "Roboto", 24, 700, true, false, "FRETTA_LARGE" )

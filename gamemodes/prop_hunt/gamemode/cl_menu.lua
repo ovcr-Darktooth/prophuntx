@@ -508,13 +508,13 @@ function PHX.UI.BaseMainMenu(ply, cmd, args)
 		PHX.UI:CreateVGUIType("", "spacer", nil, gridpl, nil )
 		PHX.UI:CreateVGUIType("", "label", "PHX.MenuCategoryLabel", gridpl, "PHXM_PLAYER_BIND")
 		
-		PHX.UI:CreateVGUIType("ph_default_taunt_key", "binder", false, gridpl, "PHXM_PLAYER_TAUNT_KEY")
+		PHX.UI:CreateVGUIType("ph_default_taunt_key_ovcrx", "binder", false, gridpl, "PHXM_PLAYER_TAUNT_KEY")
 		PHX.UI:CreateVGUIType("ph_default_customtaunt_key", "binder", false, gridpl, "PHXM_PLAYER_TAUNTWINDOW_KEY")
 		PHX.UI:CreateVGUIType("ph_default_rotation_lock_key", "binder", false, gridpl, "PHXM_PLAYER_ROTATLOCK_KEY")
-		PHX.UI:CreateVGUIType("ph_prop_menu_key", "binder", false, gridpl, "PHXM_PLAYER_PROP_CHOOSER_KEY")
+		PHX.UI:CreateVGUIType("ph_prop_menu_key_ovcrx", "binder", false, gridpl, "PHXM_PLAYER_PROP_CHOOSER_KEY")
 		PHX.UI:CreateVGUIType("ph_prop_midair_freeze_key", "binder", false, gridpl, "PHXM_PROP_FREEZE_MIDAIR")
 		PHX.UI:CreateVGUIType("ph_cl_decoy_spawn_key", "binder", false, gridpl, "PHXM_CL_DECOY_KEYBIND")
-		PHX.UI:CreateVGUIType("ph_cl_unstuck_key", "binder", false, gridpl, "PHXM_CL_UNSTUCK")
+		PHX.UI:CreateVGUIType("ph_cl_unstuck_key_ovcrx", "binder", false, gridpl, "PHXM_CL_UNSTUCK")
         PHX.UI:CreateVGUIType("ph_thirdperson_key", "binder", false, gridpl, "PHXM_CL_THIRDPERSON")
 		
         PHX.UI:CreateVGUIType("", "btn", {

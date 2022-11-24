@@ -167,6 +167,80 @@ function PANEL:SetForHelp( strHelpText, ContribsText )
 
 end
 
+function PANEL:RemoveHelp()
+	self.lblHoverText:Hide()
+end
+
+
+function PANEL:BtnTeamHunter()
+
+	local laTeamHunters = team.GetAllTeams()[1]
+
+	self.btnTeamHunter = vgui.Create( "DButton", self )
+	self.btnTeamHunter:SetText("Hunters")
+	local largeurPanel, hauteurPanel = self:GetSize() 
+	self.btnTeamHunter:SetSize( ScrW()/2-20, CENTER_HEIGHT * 2 - 130 )
+	self.btnTeamHunter:SetPos( 10 + ScrW()/2, CENTER_HEIGHT + 50 )
+	self.btnTeamHunter.m_colBackground = laTeamHunters.Color
+	self.btnTeamHunter:SetFont( "FRETTA_ENORMOUS" )
+	self.btnTeamHunter.DoClick = function() 
+									RunConsoleCommand( "changeteam", 1 )
+									self:Remove()
+								end
+
+	Derma_Hook( self.btnTeamHunter, "Paint", 				"Paint", 		"SelectButton" )
+	Derma_Hook( self.btnTeamHunter, "PaintOver", 			"PaintOver", 	"SelectButton" )
+	Derma_Hook( self.btnTeamHunter, "ApplySchemeSettings","Scheme", 		"SelectButton" )
+	-- Derma_Hook( self.btnTeamHunter, "PerformLayout", 		"Layout", 		"SelectButton" )
+	
+end
+
+function PANEL:BtnTeamProp()
+
+	local laTeamProps = team.GetAllTeams()[2]
+
+	self.btnTeamProp = vgui.Create( "DButton", self )
+	self.btnTeamProp:SetText( "Props")
+	self.btnTeamProp:SetSize( ScrW()/2-10, CENTER_HEIGHT * 2 - 130 )
+	self.btnTeamProp:SetPos( 10, CENTER_HEIGHT + 50 )
+	self.btnTeamProp.m_colBackground = laTeamProps.Color
+	self.btnTeamProp:SetFont( "FRETTA_ENORMOUS" )
+	self.btnTeamProp.DoClick = function() 
+									RunConsoleCommand( "changeteam", 2 ) 
+									self:Remove()
+								end
+
+	Derma_Hook( self.btnTeamProp, "Paint", 				"Paint", 		"SelectButton" )
+	Derma_Hook( self.btnTeamProp, "PaintOver", 			"PaintOver", 	"SelectButton" )
+	Derma_Hook( self.btnTeamProp, "ApplySchemeSettings","Scheme", 		"SelectButton" )
+	-- Derma_Hook( self.btnTeamProp, "PerformLayout", 		"Layout", 		"SelectButton" )
+
+
+
+	
+end
+
+function PANEL:BtnTeamSpec()
+
+	local laTeamSpec = team.GetAllTeams()[1002]
+
+	self.btnTeamSpec = vgui.Create( "DButton", self )
+	self.btnTeamSpec:SetText( "Spec")
+	self.btnTeamSpec:SetSize( ScrW()-20, 40 )
+
+	self.btnTeamSpec:SetPos( 10, CENTER_HEIGHT * 2 + 180 )
+	self.btnTeamSpec.m_colBackground = laTeamSpec.Color
+	self.btnTeamSpec:SetFont( "FRETTA_LARGE" )
+	self.btnTeamSpec.DoClick = function() 
+									RunConsoleCommand( "changeteam", 1002 ) 
+									self:Remove()
+								end
+
+	Derma_Hook( self.btnTeamSpec, "Paint", 				"Paint", 		"SelectButton" )
+	Derma_Hook( self.btnTeamSpec, "PaintOver", 			"PaintOver", 	"SelectButton" )
+	Derma_Hook( self.btnTeamSpec, "ApplySchemeSettings","Scheme", 		"SelectButton" )
+end
+
 /*---------------------------------------------------------
    SetHeaderText	-- Wolvin: this is unused as we're now using 'PANEL:SetForHelp' instead.
 ---------------------------------------------------------*/
@@ -194,6 +268,7 @@ function PANEL:AddSelectButton( strName, fnFunction, txt )
 	local btn = vgui.Create( "DButton", self.pnlButtons )
 	btn:SetText( strName )
 	btn:SetSize( 200, 30 )
+	btn:SetFont("FRETTA_SMALL")
 	btn.DoClick = function() fnFunction() surface.PlaySound( Sound("buttons/lightswitch2.wav") ) self:Remove() end
 	
 	Derma_Hook( btn, "Paint", 				"Paint", 		"SelectButton" )
@@ -302,6 +377,8 @@ function GM:ShowTeam()
 	
 		TeamPanel = vgui.CreateFromTable( GAMEMODE.VGUISplash )
 		TeamPanel:SetHeaderText( PHX:FTranslate("DERMA_TEAMSELECT") or "Choose Team" )
+
+		
 
 		local AllTeams = team.GetAllTeams()
 		for ID, TeamInfo in SortedPairs ( AllTeams ) do

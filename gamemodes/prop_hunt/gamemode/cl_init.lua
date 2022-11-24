@@ -94,13 +94,13 @@ local DefaultKeysTut = {
 		["KEY_RMB"]	= "KEYHINT_RMB",
 		},
 		ConVars = {
-			["ph_default_taunt_key"]		=  "KEYHINT_RANDTAUNT",
+			["ph_default_taunt_key_ovcrx"]		=  "KEYHINT_RANDTAUNT",
 			["ph_default_customtaunt_key"] 	=  "KEYHINT_TAUNTMENU",
 			["ph_default_rotation_lock_key"] = "KEYHINT_ROTATION" ,
-			["ph_prop_menu_key"]			=  "KEYHINT_PROPMENU" ,
+			["ph_prop_menu_key_ovcrx"]			=  "KEYHINT_PROPMENU" ,
 			["ph_prop_midair_freeze_key"]	=  "KEYHINT_FREEZEAIR",
 			["ph_cl_decoy_spawn_key"]		=  "KEYHINT_SPAWNDECOY",
-			["ph_cl_unstuck_key"]			=  "KEYHINT_UNSTUCK"
+			["ph_cl_unstuck_key_ovcrx"]			=  "KEYHINT_UNSTUCK"
 		}
 	}
 }
@@ -263,46 +263,14 @@ function GM:ShowTeam()
 	
 		TeamPanel = vgui.CreateFromTable( GAMEMODE.VGUISplash )
 		TeamPanel:SetHeaderText( PHX:FTranslate("DERMA_TEAMSELECT") )
-
-		local AllTeams = team.GetAllTeams()
-		for ID, TeamInfo in SortedPairs ( AllTeams ) do
+		TeamPanel:RemoveHelp()
 		
-			if ( ID != TEAM_CONNECTING && ID != TEAM_UNASSIGNED && ( ID != TEAM_SPECTATOR || GAMEMODE.AllowSpectating ) && team.Joinable(ID) ) then
-			
-				if ( ID == TEAM_SPECTATOR ) then
-					TeamPanel:AddSpacer( 12 )
-				end
-			
-				local strName = PHX:TranslateName( ID ) -- TeamInfo.Name
-				local func = function() RunConsoleCommand( "changeteam", ID ) end
-			
-				local btn = TeamPanel:AddSelectButton( strName, func )
-				btn.m_colBackground = TeamInfo.Color
-				btn.Think = function( self ) 
-					self:SetText( Format( "%s (%i)", strName, team.NumPlayers( ID ) ))
-					--[[ if ID ~= TEAM_SPECTATOR then
-						self:SetDisabled( GAMEMODE:TeamHasEnoughPlayers( ID ) ) 
-					end ]]
-					self:SetDisabled(GAMEMODE:CustomTeamHasEnoughPlayers(ID, LocalPlayer()))
-				end
-				
-				if (  IsValid( LocalPlayer() ) && LocalPlayer():Team() == ID ) then
-					btn:SetDisabled( true )
-				end
-				
-			end
-			
-		end
+		TeamPanel:BtnTeamProp()
+		TeamPanel:BtnTeamHunter()
+		TeamPanel:BtnTeamSpec()
 		
-		if (  IsValid( LocalPlayer() ) &&
-		
-			( LocalPlayer():Team() == TEAM_UNASSIGNED or
-			LocalPlayer():Team() == TEAM_SPECTATOR or
-			LocalPlayer():Team() == TEAM_HUNTERS or
-			LocalPlayer():Team() == TEAM_PROPS ) ) then
 			
-			TeamPanel:AddCancelButton()
-		end
+		TeamPanel:AddCancelButton()
 		
 	end
 	
@@ -440,7 +408,9 @@ function HUDPaint()
 			if pl != LocalPlayer() && (pl && pl:IsValid() && pl:Alive() && pl:Team() == LocalPlayer():Team()) then
 				local addvector = Vector(0, 0, math.Clamp(pl:EyePos():Distance(LocalPlayer():EyePos())*0.04, 16, 64))
 				-- todo: text will disappear in a specified distance - not yet
-				draw.DrawText(PHX:FTranslate("HUD_TargetID", pl:Name(), pl:Health()), "TargetIDSmall", (pl:EyePos() + addvector):ToScreen().x, (pl:EyePos() + addvector):ToScreen().y, team.GetColor(pl:Team()), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+				-- draw.DrawText(PHX:FTranslate("HUD_TargetID", pl:Name(), pl:Health()), "TargetIDSmall", (pl:EyePos() + addvector):ToScreen().x, (pl:EyePos() + addvector):ToScreen().y, team.GetColor(pl:Team()), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+				local txtJoueur = pl:Name() .. "(" .. pl:Health() .. "%)"
+				draw.DrawText( txtJoueur, "TargetIDSmall", (pl:EyePos() + addvector):ToScreen().x, (pl:EyePos() + addvector):ToScreen().y, team.GetColor(pl:Team()), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 			end
 		end
 	end
@@ -451,8 +421,20 @@ function HUDPaint()
 		local cX,cY = ScrW()*0.5,ScrH()*0.5
 	
 		if PHX:GetCVar( "ph_spect_inform_join_team" ) and (LocalPlayer():Team() == TEAM_SPECTATOR or LocalPlayer():Team() == TEAM_UNASSIGNED) then
-			draw.WordBox( 8, cX, ScrH()*0.125, PHX:FTranslate("PHX_SPECT_JOINGAME"), "HunterBlindLockFont",
-			WordBoxCol.bg, WordBoxCol.spectator, TEXT_ALIGN_CENTER )
+			local text = PHX:FTranslate("PHX_SPECT_JOINGAME")
+			local tailleText = string.len(text)
+			local couleurTexte
+			if os.time()%2==0 then
+				couleurTexte = Color(255,255,255,255)
+			else
+				couleurTexte = Color(255,0,0,255)
+			end
+		
+			draw.RoundedBox( 7, cX-(tailleText*6/2), ScrH()*0.125, tailleText*6, 25, Color(70,70,70,155) )
+			draw.SimpleText(text,"HunterBlindLockFont",cX,ScrH()*0.125+4,couleurTexte,TEXT_ALIGN_CENTER)
+			-- draw.SimpleText()
+			-- draw.WordBox( 8, cX, ScrH()*0.125, PHX:FTranslate("PHX_SPECT_JOINGAME"), "HunterBlindLockFont",
+			-- WordBoxCol.bg, WordBoxCol.spectator, TEXT_ALIGN_CENTER )
 		end
 	
 		local blindlock_time_left = (PHX:GetCVar( "ph_hunter_blindlock_time" ) - (CurTime() - GetGlobalFloat("RoundStartTime", 0))) + 1
@@ -746,10 +728,12 @@ function PHX:ShowTutorPopup()
 			incH=incH+32
 			
 			for cv,text in pairs(DefaultKeysTut[LocalPlayer():Team()].ConVars) do
-				local var = input.GetKeyName( GetConVar(cv):GetInt() ):upper()
-				local item = createItems(grW,grH,var,text)
-				incH=incH+32
-				gr:AddItem( item )
+				if input.GetKeyName( GetConVar(cv):GetInt() ):upper()!=nil then
+					local var = input.GetKeyName( GetConVar(cv):GetInt() ):upper()
+					local item = createItems(grW,grH,var,text)
+					incH=incH+32
+					gr:AddItem( item )
+				end
 			end
 			for id,text in pairs(DefaultKeysTut[LocalPlayer():Team()].Default) do
 				local var = id:upper()

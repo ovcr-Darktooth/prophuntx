@@ -188,20 +188,21 @@ end
 ---------------------------------------------------------*/
 function GM:PlayerFootstep( ply, pos, foot, sound, volume, rf ) 
 
-	if( GAMEMODE.NoPlayerFootsteps || !ply:Alive() || ply:Team() == TEAM_SPECTATOR || ply:IsObserver() ) then
-		return true;
-	end
+	-- if( GAMEMODE.NoPlayerFootsteps || !ply:Alive() || ply:Team() == TEAM_SPECTATOR || ply:IsObserver() ) then
+	-- 	return true;
+	-- end
 	
-	local Class = ply:GetPlayerClass();
-	if( !Class ) then return end
+	-- local Class = ply:GetPlayerClass();
+	-- if( !Class ) then return end
 	
-	if( Class.DisableFootsteps ) then // rather than using a hook, we can just do this to override the function instead.
-		return true;
-	end
+	-- if( Class.DisableFootsteps ) then // rather than using a hook, we can just do this to override the function instead.
+	-- 	return true;
+	-- end
 	
-	if( Class.Footstep ) then
-		return Class:Footstep( ply, pos, foot, sound, volume, rf ); // Call footstep function in class, you can use this to make custom footstep sounds
-	end
+	-- if( Class.Footstep ) then
+	-- 	return Class:Footstep( ply, pos, foot, sound, volume, rf ); // Call footstep function in class, you can use this to make custom footstep sounds
+	-- end
+	return false
 	
 end
 

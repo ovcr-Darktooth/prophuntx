@@ -17,9 +17,12 @@ local function StartLoadOut( pl )
 
     if !pl:Alive() then return end
 
-    pl:GiveAmmo(32, "Buckshot")
-    pl:GiveAmmo(255, "SMG1")
-    pl:GiveAmmo(12, "357")
+    pl:GiveAmmo(1000, "Buckshot")
+	pl:GiveAmmo(1000, "SMG1")
+	pl:GiveAmmo(1000, "357")
+	pl:GiveAmmo(1000, "ar2")
+	pl:GiveAmmo(1000, "Pistol")
+	pl:GiveAmmo(1000,"XBowBolt")
     
     pl:Give("weapon_crowbar")
     pl:Give("weapon_shotgun")
